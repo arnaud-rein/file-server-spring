@@ -19,12 +19,32 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*")
 public class FileUploadController {
+    private static final String BASE_DIRECTORY = "upload-dir"; // Répertoire de base pour les fichiers
 
     private final StorageService storageService;
 
     @Autowired
     public FileUploadController(StorageService storageService) {
         this.storageService = storageService;
+    }
+
+    // Endpoint pour créer un dossier
+    @PostMapping("/create-directory")
+    public ResponseEntity<String> createDirectory(@RequestParam("folderName") String folderName) {
+        try {
+            Path directoryPath = Path.of(BASE_DIRECTORY, folderName);
+
+            if (Files.exists(directoryPath)) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("Le dossier existe déjà : " + folderName);
+            }
+
+            Files.createDirectories(directoryPath);
+            return ResponseEntity.ok("Dossier créé avec succès : " + folderName);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erreur lors de la création du dossier : " + e.getMessage());
+        }
     }
 
     @PostMapping("/upload")
